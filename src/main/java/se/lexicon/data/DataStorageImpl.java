@@ -17,65 +17,80 @@ import java.util.function.Predicate;
  */
 public class DataStorageImpl implements DataStorage {
 
-    private static final DataStorage INSTANCE;
+  private static final DataStorage INSTANCE;
 
-    static {
-        INSTANCE = new DataStorageImpl();
+  static {
+    INSTANCE = new DataStorageImpl();
+  }
+
+  private final List<Person> personList;
+
+  private DataStorageImpl() {
+    personList = PersonGenerator.getInstance().generate(1000);
+  }
+
+  static DataStorage getInstance() {
+    return INSTANCE;
+  }
+
+
+  @Override
+  public List<Person> findMany(Predicate<Person> filter) {
+    List<Person> result = new ArrayList<>();
+    for (Person person : personList) {
+      if (filter.test(person)) {
+        result.add(person);
+      }
     }
+    return result;
+  }
 
-    private final List<Person> personList;
-
-    private DataStorageImpl(){
-        personList = PersonGenerator.getInstance().generate(1000);
+  @Override
+  public Person findOne(Predicate<Person> filter) {
+    for (Person person : personList) {
+      if (filter.test(person)) {
+        return person;
+      }
     }
+    return null;
+  }
 
-    static DataStorage getInstance(){
-        return INSTANCE;
+  @Override
+  public String findOneAndMapToString(Predicate<Person> filter, Function<Person, String> personToString) {
+    return personToString.apply(findOne(filter));
+  }
+
+  @Override
+  public List<String> findManyAndMapEachToString(Predicate<Person> filter, Function<Person, String> personToString) {
+    List<String> result = new ArrayList<>();
+    for (Person person : personList) {
+      if (filter.test(person)) {
+        result.add(personToString.apply(person));
+      }
     }
+    return result;
+  }
 
-
-    @Override
-    public List<Person> findMany(Predicate<Person> filter) {
-        List<Person> result = new ArrayList<>();
-        for(Person person : personList){
-            if(filter.test(person)){
-                result.add(person);
-            }
-        }
-        return result;
+  @Override
+  public void findAndDo(Predicate<Person> filter, Consumer<Person> consumer) {
+    for (Person person : personList) {
+      if (filter.test(person)) {
+        consumer.accept(person);
+      }
     }
+  }
 
-    @Override
-    public Person findOne(Predicate<Person> filter) {
-        // TODO: implement findOne
-        return null;
-    }
+  @Override
+  public List<Person> findAndSort(Comparator<Person> comparator) {
+    List<Person> allPeople = new ArrayList<>(personList);
+    allPeople.sort(comparator);
+    return allPeople;
+  }
 
-    @Override
-    public String findOneAndMapToString(Predicate<Person> filter, Function<Person, String> personToString){
-        // TODO: implement findOneAndMapToString
-        return null;
-    }
-
-    @Override
-    public List<String> findManyAndMapEachToString(Predicate<Person> filter, Function<Person, String> personToString){
-        // TODO: implement findManyAndMapEachToString
-        return null;
-    }
-
-    @Override
-    public void findAndDo(Predicate<Person> filter, Consumer<Person> consumer){
-        // TODO: implement findAndDo
-    }
-
-    @Override
-    public List<Person> findAndSort(Comparator<Person> comparator){
-       return null;
-    }
-
-    @Override
-    public List<Person> findAndSort(Predicate<Person> filter, Comparator<Person> comparator){
-        // TODO: implement findAndSort
-       return null;
-    }
+  @Override
+  public List<Person> findAndSort(Predicate<Person> filter, Comparator<Person> comparator) {
+    List<Person> list = findMany(filter);
+    list.sort(comparator);
+    return list;
+  }
 }
